@@ -1,0 +1,18 @@
+{{ $exist_storage_class := (lookup "storage.k8s.io/v1" "StorageClass" "" .Values.mcore.storage_class) }}
+
+{{if not $exist_storage_class}}
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {{ .Values.mcore.storage_class }}
+provisioner: kubernetes.io/aws-ebs
+parameters:
+  type: gp2
+  fsType: ntfs
+reclaimPolicy: Retain
+allowVolumeExpansion: true
+volumeBindingMode: Immediate
+
+{{ end }}

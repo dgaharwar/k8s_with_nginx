@@ -1,0 +1,64 @@
+# MAM4PRO Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mam4pro
+  labels:
+    app: mam4pro
+spec:
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+    - name: mogservices
+      port: 8731
+      targetPort: 8731
+    - name: mogproxy0
+      port: 8734
+      targetPort: 8734
+    - name: mogproxy1
+      port: 8735
+      targetPort: 8735
+    - name: websocket
+      port: 8741
+      targetPort: 8741
+  selector:
+    app: mcore
+  type: ClusterIP
+---
+# MAM4PRO Discovery Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mam4pro-discovery
+  labels:
+    app: mam4pro
+spec:
+  ports:
+    - name: zeroconfunicast
+      port: 8782
+      targetPort: 8782
+      protocol: UDP
+  selector:
+    app: mcore
+  type: ClusterIP
+---
+# MAM4PRO Messagequeuing Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: mam4pro-messagequeuing
+  labels:
+    app: mam4pro
+spec:
+  ports:
+    - name: rabbitmqamqp1
+      port: 5671
+    - name: rabbitmqamqp2
+      port: 5672
+    - name: rabbitmqhttp
+      port: 15672
+      targetPort: 15672
+  selector:
+    app: messagequeuing
+  type: ClusterIP

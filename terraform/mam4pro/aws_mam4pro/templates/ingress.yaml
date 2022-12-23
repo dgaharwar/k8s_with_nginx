@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mam4pro-ingress
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  rules:
+    - http:
+        paths:
+          - pathType: Prefix
+            path: "/sr/"
+            backend:
+              service:
+                name: mam4pro
+                port:
+                  number: 8731
+          - pathType: Prefix
+            path: "/ws"
+            backend:
+              service:
+                name: mam4pro
+                port:
+                  number: 8741
+          - pathType: Prefix
+            path: "/proxy/"
+            backend:
+              service:
+                name: mam4pro
+                port:
+                  number: 8731
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: mam4pro
+                port:
+                  number: 80

@@ -1,0 +1,207 @@
+# mCore StatefulSet
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mcore
+  labels:
+    app: mcore
+spec:
+  serviceName: "mam4pro"
+  podManagementPolicy: "OrderedReady"
+  replicas: {{ .Values.mcore.replicas }}
+  selector:
+    matchLabels:
+      app: mcore
+  template:
+    metadata:
+      labels:
+        app: mcore
+      name: mcore
+    spec:
+      {{ if hasKey .Values "logging-rules" }}
+        {{ if not (index .Values "logging-rules" "stdout") }}
+      volumes:
+        - name: mam4pro-logs
+          persistentVolumeClaim:
+            claimName: mam4pro-logs
+        - name: mam4pro-logs-db
+          persistentVolumeClaim:
+            claimName: mam4pro-logs-db
+        {{ end }}
+      {{ end }}
+      containers:
+        - name: mcore
+          image: {{ .Values.config.cr_server }}{{ .Values.config.cr_path }}/mog.mcore:{{ .Values.config.cr_tag }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: INGRESS
+              value: "true"
+            - name: LICENSE_SERVER
+              value: {{ .Values.config.licensing_ip }}
+            - name: RABBITMQ_SERVER
+              value: "mam4pro-messagequeuing.{{ .Release.Namespace }}.svc.cluster.local"
+          resources:
+            limits:
+              memory: "2Gi"
+            requests:
+              memory: "1Gi"
+          {{ if hasKey .Values "logging-rules" }}
+            {{ if not (index .Values "logging-rules" "stdout") }}
+          volumeMounts:
+            - name: mam4pro-logs
+              mountPath: /ProgramData/MOG/MAM4PRO_log
+            - name: mam4pro-logs-db
+              mountPath: /ProgramData/MOG/MAM4PRO/DB
+            {{ end }}
+          {{ end }}
+{{- include "cr.imagePullSecrets" . | indent 6 }}
+      nodeSelector:
+        kubernetes.io/os: windows
+---
+# MessageQueuing Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: messagequeuing
+  labels:
+    app: messagequeuing
+spec:
+  replicas: {{ .Values.messagequeuing.replicas }}
+  selector:
+    matchLabels:
+      app: messagequeuing
+  template:
+    metadata:
+      labels:
+        app: messagequeuing
+      name: messagequeuing
+    spec:
+      containers:
+        - name: messagequeuing
+          image: {{ .Values.config.cr_server }}{{ .Values.config.cr_path }}/mog.messagequeuing:{{ .Values.config.cr_tag }}
+          resources:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "1Gi"
+{{- include "cr.imagePullSecrets" . | indent 6 }}
+      nodeSelector:
+        kubernetes.io/os: windows
+---
+# rPlayerWeb Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rplayerweb
+  labels:
+    app: rplayerweb
+spec:
+  replicas: {{ .Values.rplayerweb.replicas }}
+  selector:
+    matchLabels:
+      app: rplayerweb
+  template:
+    metadata:
+      labels:
+        app: rplayerweb
+      name: rplayerweb
+    spec:
+      containers:
+        - name: rplayerweb
+          image: {{ .Values.config.cr_server }}{{ .Values.config.cr_path }}/mog.rplayerweb:{{ .Values.config.cr_tag }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: LICENSE_SERVER
+              value: {{ .Values.config.licensing_ip }}
+            - name: RABBITMQ_SERVER
+              value: "mam4pro-messagequeuing.{{ .Release.Namespace }}.svc.cluster.local"
+            - name: ZEROCONF_DATAGRAM_UNICAST_HOSTS
+              value: "mam4pro-discovery.{{ .Release.Namespace }}.svc.cluster.local"
+          resources:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "256Mi"
+{{- include "cr.imagePullSecrets" . | indent 6 }}
+      nodeSelector:
+        kubernetes.io/os: windows
+---
+# hOperation Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hoperation
+  labels:
+    app: hoperation
+spec:
+  replicas: {{ .Values.hoperation.replicas }}
+  selector:
+    matchLabels:
+      app: hoperation
+  template:
+    metadata:
+      labels:
+        app: hoperation
+      name: hoperation
+    spec:
+      containers:
+        - name: hoperation
+          image: {{ .Values.config.cr_server }}{{ .Values.config.cr_path }}/mog.hoperation:{{ .Values.config.cr_tag }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: LICENSE_SERVER
+              value: {{ .Values.config.licensing_ip }}
+            - name: RABBITMQ_SERVER
+              value: "mam4pro-messagequeuing.{{ .Release.Namespace }}.svc.cluster.local"
+            - name: ZEROCONF_DATAGRAM_UNICAST_HOSTS
+              value: "mam4pro-discovery.{{ .Release.Namespace }}.svc.cluster.local"
+          resources:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "256Mi"
+{{- include "cr.imagePullSecrets" . | indent 6 }}
+      nodeSelector:
+        kubernetes.io/os: windows
+---
+# sCapture Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scapture
+  labels:
+    app: scapture
+spec:
+  replicas: {{ .Values.scapture.replicas }}
+  selector:
+    matchLabels:
+      app: scapture
+  template:
+    metadata:
+      labels:
+        app: scapture
+      name: scapture
+    spec:
+      containers:
+        - name: scapture
+          image: {{ .Values.config.cr_server }}{{ .Values.config.cr_path }}/mog.scapture:{{ .Values.config.cr_tag }}
+          env:
+            - name: NAMESPACE
+              value: {{ .Release.Namespace }}
+            - name: LICENSE_SERVER
+              value: {{ .Values.config.licensing_ip }}
+            - name: RABBITMQ_SERVER
+              value: "mam4pro-messagequeuing.{{ .Release.Namespace }}.svc.cluster.local"
+            - name: ZEROCONF_DATAGRAM_UNICAST_HOSTS
+              value: "mam4pro-discovery.{{ .Release.Namespace }}.svc.cluster.local"
+          resources:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "256Mi"
+{{- include "cr.imagePullSecrets" . | indent 6 }}
+      nodeSelector:
+        kubernetes.io/os: windows

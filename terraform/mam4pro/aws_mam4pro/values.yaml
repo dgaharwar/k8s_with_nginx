@@ -1,0 +1,19 @@
+config:
+  cr_server: 343751875934.dkr.ecr.eu-west-2.amazonaws.com
+  cr_image_pull_secrets:
+    - regcred
+  cr_path: ""
+  cr_tag: latest
+  licensing_ip: "DERRTFO:oBWAAQCBECAsd2V6YAqus1TwNhTBw/g@20.67.182.35"
+  hostname: a86671cedf0ea42d5862dff9d022c45b-dbb9dc5105453460.elb.eu-west-2.amazonaws.com
+mcore:
+  replicas: 1
+  storage_class: windows
+messagequeuing:
+  replicas: 1
+rplayerweb:
+  replicas: 0
+hoperation:
+  replicas: 0
+scapture:
+  replicas: 1
